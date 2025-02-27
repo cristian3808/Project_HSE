@@ -129,104 +129,63 @@ downloadButton.addEventListener('click', function(event) {
     if (!isFormValid) {
         event.stopImmediatePropagation();
     }
-});
-
-downloadButton.addEventListener('click', function () {
+});downloadButton.addEventListener('click', function () {
     const { jsPDF } = window.jspdf;
     const formContent = document.getElementById('form-content');
-    const clearButtons = formContent.querySelectorAll('.clear-signature');
-    const actionColumns = formContent.querySelectorAll('.hide-on-pdf');
-    
-    // Seleccionar celdas de la columna "Eliminar" (tanto en el encabezado como en las filas)
-    const deleteColumnHeader = formContent.querySelector('th.text-base.w-16'); // Celda encabezado "Eliminar"
-    const deleteCells = formContent.querySelectorAll('td:last-child'); // Celdas de la última columna (Eliminar)
-    
-    const originalDisplayStyles = [];
 
-    // Deshabilitar el botón para evitar clics múltiples
-    this.disabled = true;
+    // **Ocultar elementos antes de capturar**
+    const elementsToHide = document.querySelectorAll(".clear-signature, .hide-on-pdf, td:last-child, th:last-child");
+    elementsToHide.forEach(el => el.style.display = "none");
 
-    // Iniciar la redirección después de un breve tiempo
-    setTimeout(() => {
-        window.location.href = 'index.php';
-    }, 500); // Redirige después de 500ms, ajusta este tiempo según prefieras.
-
-    // Ocultar botones de limpiar y columnas de acción, y guardar estilos originales
-    clearButtons.forEach(button => {
-        originalDisplayStyles.push({ element: button, display: button.style.display });
-        button.style.display = 'none';
-    });
-    actionColumns.forEach(column => {
-        originalDisplayStyles.push({ element: column, display: column.style.display });
-        column.style.display = 'none';
+    // **Transformar inputs en texto antes de capturar**
+    const inputs = document.querySelectorAll("input");
+    inputs.forEach(input => {
+        input.setAttribute("data-original-value", input.value);
+        input.insertAdjacentHTML('afterend', `<span class="text-sm p-1 temp-text">${input.value || "-"}</span>`);
+        input.style.display = "none";
     });
 
-    // Ocultar la columna "Eliminar" (tanto en el encabezado como en las celdas)
-    if (deleteColumnHeader) {
-        originalDisplayStyles.push({ element: deleteColumnHeader, display: deleteColumnHeader.style.display });
-        deleteColumnHeader.style.display = 'none'; // Ocultar el encabezado
-    }
-
-    deleteCells.forEach(cell => {
-        originalDisplayStyles.push({ element: cell, display: cell.style.display });
-        cell.style.display = 'none'; // Ocultar las celdas de la columna "Eliminar"
+    // **Reemplazar firmas en canvas por imágenes**
+    const canvases = document.querySelectorAll(".signature-pad");
+    canvases.forEach(canvas => {
+        if (canvas.toDataURL) {
+            const imgURL = canvas.toDataURL("image/png");
+            canvas.setAttribute("data-original-canvas", canvas.outerHTML);
+            canvas.insertAdjacentHTML('afterend', `<img src="${imgURL}" class="signature-img" style="max-width:200px; max-height:40px;">`);
+            canvas.style.display = "none";
+        }
     });
 
-    // Esperar un pequeño intervalo antes de capturar la tabla
-    setTimeout(() => {
-        // Usamos html2canvas para capturar la tabla completa incluyendo los asistentes
-        html2canvas(formContent, {
-            backgroundColor: "#E1EEE2",  // Fondo de color
-            logging: true,                // Activar el log para ver qué está sucediendo
-            scale: 2,                     // Mejorar la calidad de la imagen
-            useCORS: true,                // Permitir el uso de CORS para cargar imágenes externas
-            foreignObjectRendering: true, // Mejorar el renderizado de objetos HTML
-            x: 0,                         // Ajuste de desplazamiento en X
-            y: 0                          // Ajuste de desplazamiento en Y
-        }).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF('portrait');
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    // **Capturar como imagen**
+    html2canvas(formContent, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true
+    }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF('portrait', 'mm', 'a4');
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            pdf.setFillColor(225, 238, 226); // Fondo del PDF
-            pdf.rect(0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), 'F'); // Fondo
+        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        pdf.save('listado_asistencia.pdf');
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save('listado_asistencia.pdf');
-
-            // Restaurar los estilos originales
-            originalDisplayStyles.forEach(({ element, display }) => {
-                element.style.display = display;
-            });
-
-            // Enviar datos del PDF al servidor
-            const pdfData = pdf.output('datauristring').split(',')[1];
-            if (pdfData) {
-                fetch('listadoAsistencia.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: `btnEnviarCorreo=true&pdfData=${encodeURIComponent(pdfData)}`
-                })
-                    .then(response => response.text())
-                    .then(result => {
-                        console.log(result);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    })
-                    .finally(() => {
-                        // Habilitar el botón nuevamente después de enviar
-                        this.disabled = false;
-                    });
-            }
+        // **Restaurar inputs**
+        inputs.forEach(input => {
+            input.style.display = "";
         });
-    }, 200);  // Esperar 200ms para asegurarse de que todo esté cargado y visible
-});
+        document.querySelectorAll(".temp-text").forEach(span => span.remove());
 
+        // **Restaurar firmas en canvas**
+        canvases.forEach(canvas => {
+            canvas.style.display = "";
+        });
+        document.querySelectorAll(".signature-img").forEach(img => img.remove());
+
+        // **Restaurar elementos ocultos**
+        elementsToHide.forEach(el => el.style.display = "");
+    });
+});
 
 // Inicializar signaturePads al cargar la página
 document.querySelectorAll('.signature-pad').forEach(canvas => {
