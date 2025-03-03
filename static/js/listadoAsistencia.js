@@ -2,26 +2,53 @@ function uploadSignature(event) {
     const file = event.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = function (e) {
             const img = new Image();
-            img.onload = function() {
-                const canvas = event.target.closest('td').querySelector('.signature-pad');
+            img.onload = function () {
+                const td = event.target.closest('td'); // Celda contenedora
+                const canvas = td.querySelector('.signature-pad');
                 const ctx = canvas.getContext("2d");
 
-                // Limpiar el canvas antes de dibujar
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // 📌 Definir un tamaño fijo para el canvas
+                const maxWidth = 150;  // Ancho fijo del canvas
+                const maxHeight = 50;  // Altura fija del canvas
 
-                // Ajustar solo el ancho de la imagen al canvas, sin modificar la altura
-                let scale = (canvas.width / img.width) * 0.99; // Reducimos un poco el ancho (95%)
-                let newWidth = img.width * scale;
-                let newHeight = img.height * scale; // Mantiene la proporción original
+                // 📌 Aplicar estilos al canvas para evitar que se expanda
+                canvas.width = maxWidth;
+                canvas.height = maxHeight;
+                canvas.style.border = "1px solid #ccc";  // Borde para mejor visualización
+                canvas.style.background = "#fff";        // Fondo blanco para más claridad
+                canvas.style.display = "block";          // Evita desbordes inesperados
 
-                // Centrar en el canvas
-                let x = (canvas.width - newWidth) / 2;
-                let y = (canvas.height - newHeight) / 2;
+                // 📌 Limpiar el canvas antes de dibujar
+                ctx.clearRect(0, 0, maxWidth, maxHeight);
 
-                // Dibujar la imagen sin modificar la altura
-                ctx.drawImage(img, x, y, newWidth, newHeight);
+                // 📌 Obtener tamaño original de la imagen
+                let imgWidth = img.width;
+                let imgHeight = img.height;
+
+                // 📌 Calcular la escala manteniendo la proporción
+                let scale = Math.min(maxWidth / imgWidth, maxHeight / imgHeight);
+                let newWidth = imgWidth * scale;
+                let newHeight = imgHeight * scale;
+
+                // 📌 Centrar la imagen dentro del canvas
+                let xOffset = (maxWidth - newWidth) / 2;
+                let yOffset = (maxHeight - newHeight) / 2;
+
+                ctx.drawImage(img, xOffset, yOffset, newWidth, newHeight);
+
+                // 📌 Evitar que la celda crezca descontroladamente
+                td.style.height = `${maxHeight + 30}px`; // Ajustar margen si es necesario
+                td.style.overflow = "hidden"; // Evitar desbordamiento
+
+                // 📌 Asegurar que los botones no se desplacen
+                const buttonsContainer = td.querySelector(".buttons-container");
+                if (buttonsContainer) {
+                    buttonsContainer.style.display = "flex";
+                    buttonsContainer.style.justifyContent = "center";
+                    buttonsContainer.style.marginTop = "5px";
+                }
             };
             img.src = e.target.result;
         };
