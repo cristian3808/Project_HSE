@@ -1,4 +1,3 @@
-// Función para subir y mostrar una imagen en el canvas como firma
 function uploadSignature(event) {
     const file = event.target.files[0];
     if (file) {
@@ -8,17 +7,21 @@ function uploadSignature(event) {
             img.onload = function() {
                 const canvas = event.target.closest('td').querySelector('.signature-pad');
                 const ctx = canvas.getContext("2d");
-                
+
                 // Limpiar el canvas antes de dibujar
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Calcular la escala para mantener la proporción de la imagen
-                const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-                const x = (canvas.width - img.width * scale) / 2;  // Centrado horizontal
-                const y = (canvas.height - img.height * scale) / 2; // Centrado vertical
-                
-                // Dibujar la imagen escalada y centrada en el canvas
-                ctx.drawImage(img, 0, 0, img.width, img.height, x, y, img.width * scale, img.height * scale);
+
+                // Ajustar solo el ancho de la imagen al canvas, sin modificar la altura
+                let scale = (canvas.width / img.width) * 0.99; // Reducimos un poco el ancho (95%)
+                let newWidth = img.width * scale;
+                let newHeight = img.height * scale; // Mantiene la proporción original
+
+                // Centrar en el canvas
+                let x = (canvas.width - newWidth) / 2;
+                let y = (canvas.height - newHeight) / 2;
+
+                // Dibujar la imagen sin modificar la altura
+                ctx.drawImage(img, x, y, newWidth, newHeight);
             };
             img.src = e.target.result;
         };
@@ -55,37 +58,34 @@ document.getElementById('add-row').addEventListener('click', function() {
     
         return; // Detener la ejecución si ya hay 20 filas
     }
-    
        
     const newRow = document.createElement('tr');
     newRow.innerHTML = `
-        <td class="border border-gray-400 p-2"><input type="text"  class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>
-        <td class="border border-gray-400 p-2"><input type="text"  class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>
-        <td class="border border-gray-400 p-2"><input type="text"  class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>
-        <td class="border border-gray-400 p-2"><input type="text"  class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>    
-        <td class="border border-gray-300 p-1 flex flex-col items-center justify-center">
-            <canvas class="signature-pad border border-gray-400" width="200" height="40"></canvas>
-            <div class="flex space-x-2 mt-2">
-                <button type="button" class="bg-red-500 text-white px-2 py-1 rounded clear-signature flex items-center h-5">
-                    <svg class="w-4 h-4 mr-2 text-red-200" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M3 6h18v2H3V6zm3 3h12v13H6V9zm4-5h4v2h-4V4zM5 6h14v16a2 2 0 01-2 2H7a2 2 0 01-2-2V6zm6 5v3h3V11h-3z"/>
-                    </svg>
-                    Limpiar
-                </button>
-                <label class="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer flex items-center h-5 hide-on-pdf">
-                    <input type="file" class="hidden" accept="image/*" id="upload-signature" onchange="uploadSignature(event)">
-                    <svg class="w-4 h-4 mr-2 text-blue-200" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M12 2L8.59 5.41 13.17 10H4v2h9.17l-4.58 4.59L12 18l8-8-8-8zm0 4v3h-1v4h1v3h4v-3h1V9h-1V6h-4z"/>
-                    </svg>
-                    Subir firma
-                </label>
-            </div>
-        </td>
-        <td class="border border-gray-400 p-2 text-center">
-            <button class="bg-red-500 text-white px-2 py-1 rounded remove-row flex items-center justify-center mx-auto">
-                X
-            </button>
-        </td>
+        <td class="border border-gray-400 p-2"><input type="text" class="w-full border-none p-1 text-base" minlength="6" maxlength="10" placeholder="-"></td>
+                    <td class="border border-gray-400 p-2"><input type="text" class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>
+                    <td class="border border-gray-400 p-2"><input type="text" class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>
+                    <td class="border border-gray-400 p-2"><input type="text" class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>
+                    <td class="border border-gray-300 p-1 flex flex-col items-center justify-center">
+                        <canvas class="signature-pad border border-gray-400" width="200" height="40"></canvas>
+                        <div class="flex space-x-2 mt-2">
+                        <button type="button" class="bg-red-500 text-white px-2 py-1 rounded clear-signature flex items-center h-5">
+                            <svg class="w-4 h-4 mr-2 text-red-200" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                <path d="M3 6h18v2H3V6zm3 3h12v13H6V9zm4-5h4v2h-4V4zM5 6h14v16a2 2 0 01-2 2H7a2 2 0 01-2-2V6zm6 5v3h3V11h-3z"/>
+                            </svg>
+                            Limpiar
+                        </button>
+                                <label class="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer flex items-center h-5 hide-on-pdf">
+                                <input type="file" class="hidden" accept="image/*" id="upload-signature" onchange="uploadSignature(event)">
+                                <svg class="w-4 h-4 mr-2 text-blue-200" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                                    <path d="M12 2L8.59 5.41 13.17 10H4v2h9.17l-4.58 4.59L12 18l8-8-8-8zm0 4v3h-1v4h1v3h4v-3h1V9h-1V6h-4z"/>
+                                </svg>
+                                Subir firma
+                            </label>
+                        </div>
+                    </td>
+                    <td class="border border-gray-400 p-2 text-center">
+                        <button class="bg-red-500 text-white px-2 py-1 rounded remove-row">X</button>
+                    </td>
     `;
     newRow.querySelector('.remove-row').addEventListener('click', function() {
         newRow.remove();
@@ -129,9 +129,29 @@ downloadButton.addEventListener('click', function(event) {
     if (!isFormValid) {
         event.stopImmediatePropagation();
     }
-});downloadButton.addEventListener('click', function () {
+});
+async function enviarCorreoConPDF(pdf) {
+    const pdfData = pdf.output('datauristring').split(',')[1];
+
+    if (pdfData) {
+        try {
+            await fetch('listadoAsistencia.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `btnEnviarCorreo=true&pdfData=${encodeURIComponent(pdfData)}`
+            });
+        } catch (error) {
+            console.error('Error al enviar el correo:', error);
+        }
+    }
+}
+
+downloadButton.addEventListener('click', async function () {
     const { jsPDF } = window.jspdf;
     const formContent = document.getElementById('form-content');
+
+    // Deshabilitar el botón para evitar múltiples clics
+    this.disabled = true;
 
     // **Ocultar elementos antes de capturar**
     const elementsToHide = document.querySelectorAll(".clear-signature, .hide-on-pdf, td:last-child, th:last-child");
@@ -141,53 +161,107 @@ downloadButton.addEventListener('click', function(event) {
     const inputs = document.querySelectorAll("input");
     inputs.forEach(input => {
         input.setAttribute("data-original-value", input.value);
-        input.insertAdjacentHTML('afterend', `<span class="text-sm p-1 temp-text">${input.value || "-"}</span>`);
+        input.insertAdjacentHTML('afterend', `<span class="text-sm p-1 temp-text">${input.value || "-"} </span>`);
         input.style.display = "none";
     });
 
-    // **Reemplazar firmas en canvas por imágenes**
+    // **Reemplazar firmas en canvas por imágenes más pequeñas**
     const canvases = document.querySelectorAll(".signature-pad");
     canvases.forEach(canvas => {
         if (canvas.toDataURL) {
             const imgURL = canvas.toDataURL("image/png");
-            canvas.setAttribute("data-original-canvas", canvas.outerHTML);
-            canvas.insertAdjacentHTML('afterend', `<img src="${imgURL}" class="signature-img" style="max-width:200px; max-height:40px;">`);
+
+            // **Crear imagen**
+            const img = document.createElement('img');
+            img.src = imgURL;
+            img.classList.add("signature-img");
+            img.style.width = canvas.width + "px";  // Mantener mismo tamaño que el canvas
+            img.style.height = canvas.height + "px";
+
+            canvas.insertAdjacentElement('afterend', img);
             canvas.style.display = "none";
         }
     });
 
-    // **Capturar como imagen**
-    html2canvas(formContent, {
-        backgroundColor: "#ffffff",
-        scale: 2,
-        useCORS: true
-    }).then(canvas => {
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF('portrait', 'mm', 'a4');
-        const imgWidth = 190;
+    try {
+        // **Capturar como imagen con más calidad**
+        const canvas = await html2canvas(formContent, {
+            backgroundColor: "#ffffff",
+            scale: 3,  // Aumentamos la escala para mejor calidad
+            useCORS: true,
+            scrollY: 0
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.7); // **Reducir tamaño con compresión**
+
+        // **Crear el PDF en tamaño A1**
+        const pdf = new jsPDF('portrait', 'mm', 'a1');
+
+        // **Obtener tamaño de la página**
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const margin = 20; // 20mm de margen en todos los lados
+        const imgWidth = pageWidth - (margin * 2);
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
+
+        // **Iniciar el envío del correo en segundo plano**
+        enviarCorreoConPDF(pdf);
+
+        // **Permitir la descarga sin esperar el envío**
         pdf.save('listado_asistencia.pdf');
 
+    } catch (error) {
+        console.error("Error al generar el PDF:", error);
+        alert("Hubo un problema al generar el PDF. Inténtalo de nuevo.");
+    } finally {
         // **Restaurar inputs**
-        inputs.forEach(input => {
-            input.style.display = "";
-        });
+        inputs.forEach(input => input.style.display = "");
         document.querySelectorAll(".temp-text").forEach(span => span.remove());
 
         // **Restaurar firmas en canvas**
-        canvases.forEach(canvas => {
-            canvas.style.display = "";
-        });
+        canvases.forEach(canvas => canvas.style.display = "");
         document.querySelectorAll(".signature-img").forEach(img => img.remove());
 
         // **Restaurar elementos ocultos**
         elementsToHide.forEach(el => el.style.display = "");
-    });
+
+        // **Habilitar el botón nuevamente**
+        this.disabled = false;
+
+        // **Redirigir después de un breve retraso**
+        setTimeout(() => {
+            window.location.href = 'index.php';
+        }, 300);
+    }
 });
 
-// Inicializar signaturePads al cargar la página
+
 document.querySelectorAll('.signature-pad').forEach(canvas => {
-    new SignaturePad(canvas);
+    // **Reducimos un poco más**
+    canvas.width = 300;  // Antes 350
+    canvas.height = 120; // Antes 140
+});
+async function enviarCorreo() {
+    try {
+        await fetch('listadoAsistencia.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'btnEnviarCorreo=true'
+        });
+
+        $('#toast-simple').removeClass('hidden').fadeIn();
+
+        setTimeout(() => {
+            window.location.href = 'index.php';
+        }, 500);
+    } catch (error) {
+        alert("Hubo un error al enviar el correo.");
+    }
+}
+
+// Asignar el evento al formulario para llamar la función enviarCorreo
+$('#frmEnviarCorreo').on('submit', function(e) {
+    e.preventDefault();
+    enviarCorreo();
 });

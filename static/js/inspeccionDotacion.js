@@ -359,10 +359,9 @@ document.querySelectorAll('.signature-pad').forEach(canvas => {
     new SignaturePad(canvas);
 });
 
-
 function enviarCorreo() {
 $.ajax({
-    url: 'inspeccionComportamental.php',
+    url: 'inspeccionDotacion.php',
     method: 'POST',
     data: { btnEnviarCorreo: true },
     success: function(response) {

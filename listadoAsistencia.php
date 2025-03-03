@@ -105,31 +105,7 @@ require_once  'php/listadoAsistencia.php';
             </thead>
             <tbody id="table-body">
                 <tr>
-                    <td class="border border-gray-400 p-2"><input type="text" class="w-full border-none p-1 text-base" minlength="6" maxlength="10" placeholder="-"></td>
-                    <td class="border border-gray-400 p-2"><input type="text" class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>
-                    <td class="border border-gray-400 p-2"><input type="text" class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>
-                    <td class="border border-gray-400 p-2"><input type="text" class="w-full border-none p-1 text-base" minlength="4" maxlength="30" placeholder="-"></td>
-                    <td class="border border-gray-300 p-1 flex flex-col items-center justify-center">
-                        <canvas class="signature-pad border border-gray-400" width="200" height="40"></canvas>
-                        <div class="flex space-x-2 mt-2">
-                        <button type="button" class="bg-red-500 text-white px-2 py-1 rounded clear-signature flex items-center h-5">
-                            <svg class="w-4 h-4 mr-2 text-red-200" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                <path d="M3 6h18v2H3V6zm3 3h12v13H6V9zm4-5h4v2h-4V4zM5 6h14v16a2 2 0 01-2 2H7a2 2 0 01-2-2V6zm6 5v3h3V11h-3z"/>
-                            </svg>
-                            Limpiar
-                        </button>
-                                <label class="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer flex items-center h-5 hide-on-pdf">
-                                <input type="file" class="hidden" accept="image/*" id="upload-signature" onchange="uploadSignature(event)">
-                                <svg class="w-4 h-4 mr-2 text-blue-200" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                                    <path d="M12 2L8.59 5.41 13.17 10H4v2h9.17l-4.58 4.59L12 18l8-8-8-8zm0 4v3h-1v4h1v3h4v-3h1V9h-1V6h-4z"/>
-                                </svg>
-                                Subir firma
-                            </label>
-                        </div>
-                    </td>
-                    <td class="border border-gray-400 p-2 text-center">
-                        <button class="bg-red-500 text-white px-2 py-1 rounded remove-row">X</button>
-                    </td>
+                
                 </tr>
             </tbody>
         </table>
