@@ -38,7 +38,7 @@ $resultado = '';
 if (isset($_POST['btnEnviarCorreo'])) {
     // Lista de correos a los cuales se enviará el mensaje
     // $correos = ['mario.acosta@tfauditores.com', 'cristian.mora3808@gmail.com']; // Agregar los correos deseados
-    $correos = ['mario.acosta@tfauditores.coms', 'cristian.mora3808@gmail.com']; // Agregar los correos deseados
+    $correos = ['mario.acosta@tfauditores.com', 'cristian.mora3808@gmail.com']; // Agregar los correos deseados
 
     // Generar el PDF
     $pdfPath = 'inspeccion_trabajo.pdf';

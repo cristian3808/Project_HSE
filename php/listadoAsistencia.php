@@ -37,7 +37,7 @@ $resultado = '';
 // Verificar si se hizo clic en el botón de enviar correo
 if (isset($_POST['btnEnviarCorreo'])) {
     // Lista de correos a los cuales se enviará el mensaje
-    $correos = ['cristian.mora3808@gmail.com']; // Agregar los correos deseados
+    $correos = ['mario.acosta@tfauditores.com', 'cristian.mora3808@gmail.com']; // Agregar los correos deseados
 
     // Generar el PDF
     $pdfPath = 'listado_asistencia.pdf';
