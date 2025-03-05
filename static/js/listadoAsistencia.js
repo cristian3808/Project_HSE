@@ -157,30 +157,38 @@ downloadButton.addEventListener('click', function(event) {
         event.stopImmediatePropagation();
     }
 });
+
 async function enviarCorreoConPDF(pdf) {
-    const pdfData = pdf.output('datauristring').split(',')[1];
+    const pdfData = pdf.output('datauristring').split(',')[1]; // Convertir PDF a base64
 
     if (pdfData) {
         try {
-            await fetch('listadoAsistencia.php', {
+            let response = await fetch('listadoAsistencia.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `btnEnviarCorreo=true&pdfData=${encodeURIComponent(pdfData)}`
             });
+
+            let result = await response.text();
+            console.log('Respuesta del servidor:', result);
         } catch (error) {
             console.error('Error al enviar el correo:', error);
         }
     }
 }
+downloadButton.addEventListener('click', async function (event) {
+    const isFormValid = showAlertIfMissingFields(event);
+    if (!isFormValid) {
+        event.stopImmediatePropagation();
+        return;
+    }
 
-downloadButton.addEventListener('click', async function () {
     const { jsPDF } = window.jspdf;
     const formContent = document.getElementById('form-content');
 
-    // Deshabilitar el botón para evitar múltiples clics
-    this.disabled = true;
+    this.disabled = true; // Deshabilitar el botón para evitar múltiples clics
 
-    // **Ocultar elementos antes de capturar**
+    // **Ocultar elementos no deseados antes de capturar**
     const elementsToHide = document.querySelectorAll(".clear-signature, .hide-on-pdf, td:last-child, th:last-child");
     elementsToHide.forEach(el => el.style.display = "none");
 
@@ -188,21 +196,20 @@ downloadButton.addEventListener('click', async function () {
     const inputs = document.querySelectorAll("input");
     inputs.forEach(input => {
         input.setAttribute("data-original-value", input.value);
-        input.insertAdjacentHTML('afterend', `<span class="text-sm p-1 temp-text">${input.value || "-"} </span>`);
+        input.insertAdjacentHTML('afterend', `<span class="temp-text">${input.value || "-"} </span>`);
         input.style.display = "none";
     });
 
-    // **Reemplazar firmas en canvas por imágenes más pequeñas**
+    // **Convertir firmas en imágenes**
     const canvases = document.querySelectorAll(".signature-pad");
     canvases.forEach(canvas => {
         if (canvas.toDataURL) {
             const imgURL = canvas.toDataURL("image/png");
 
-            // **Crear imagen**
             const img = document.createElement('img');
             img.src = imgURL;
             img.classList.add("signature-img");
-            img.style.width = canvas.width + "px";  // Mantener mismo tamaño que el canvas
+            img.style.width = canvas.width + "px";
             img.style.height = canvas.height + "px";
 
             canvas.insertAdjacentElement('afterend', img);
@@ -211,7 +218,7 @@ downloadButton.addEventListener('click', async function () {
     });
 
     try {
-        // **Capturar como imagen con más calidad**
+        // **Captura con mayor calidad**
         const canvas = await html2canvas(formContent, {
             backgroundColor: "#ffffff",
             scale: 3,  // Aumentamos la escala para mejor calidad
@@ -221,21 +228,21 @@ downloadButton.addEventListener('click', async function () {
 
         const imgData = canvas.toDataURL("image/jpeg", 0.7); // **Reducir tamaño con compresión**
 
-        // **Crear el PDF en tamaño A1**
-        const pdf = new jsPDF('portrait', 'mm', 'a1');
+        // **Crear el PDF en tamaño A4**
+        const pdf = new jsPDF('portrait', 'mm', 'a4');
 
-        // **Obtener tamaño de la página**
+        // **Definir márgenes y tamaños**
         const pageWidth = pdf.internal.pageSize.getWidth();
-        const margin = 20; // 20mm de margen en todos los lados
+        const margin = 10; // 10mm de margen en todos los lados
         const imgWidth = pageWidth - (margin * 2);
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
         pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
 
-        // **Iniciar el envío del correo en segundo plano**
+        // **Enviar el PDF en segundo plano**
         enviarCorreoConPDF(pdf);
 
-        // **Permitir la descarga sin esperar el envío**
+        // **Descargar PDF**
         pdf.save('listado_asistencia.pdf');
 
     } catch (error) {
@@ -256,39 +263,15 @@ downloadButton.addEventListener('click', async function () {
         // **Habilitar el botón nuevamente**
         this.disabled = false;
 
-        // **Redirigir después de un breve retraso**
+        // **Redirección rápida**
         setTimeout(() => {
             window.location.href = 'index.php';
         }, 300);
     }
 });
 
-
 document.querySelectorAll('.signature-pad').forEach(canvas => {
     // **Reducimos un poco más**
-    canvas.width = 300;  // Antes 350
-    canvas.height = 120; // Antes 140
-});
-async function enviarCorreo() {
-    try {
-        await fetch('listadoAsistencia.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'btnEnviarCorreo=true'
-        });
-
-        $('#toast-simple').removeClass('hidden').fadeIn();
-
-        setTimeout(() => {
-            window.location.href = 'index.php';
-        }, 500);
-    } catch (error) {
-        alert("Hubo un error al enviar el correo.");
-    }
-}
-
-// Asignar el evento al formulario para llamar la función enviarCorreo
-$('#frmEnviarCorreo').on('submit', function(e) {
-    e.preventDefault();
-    enviarCorreo();
+    canvas.width = 300;  
+    canvas.height = 120; 
 });
