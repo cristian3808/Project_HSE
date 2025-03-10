@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once  'php/inspeccionComportamental.php';
 ?>
 <html>
@@ -118,53 +120,7 @@ require_once  'php/inspeccionComportamental.php';
                 </tr>
                 </thead>
                 <tbody id="table-body">
-                    <tr>
-                        <td class="border border-gray-400 p-2">
-                            <input type="date" class="border border-gray-400 p-1 transparent-input">
-                        </td>
-                        <td class="border border-gray-400 p-2">
-                            <input type="time" class="border border-gray-400 p-1 transparent-input">
-                        </td>
-                        <td class="border border-gray-400 p-2">
-                            <input type="text" placeholder="-" class="border border-gray-400 p-1 transparent-input" minlength="5" maxlength="22">
-                        </td>
-                        <td class="border border-gray-400 p-2 flex flex-col items-center justify-center">
-                            <canvas class="border border-gray-400 p-1 signature-pad" width="155" height="30"></canvas>
-                            <div class="mt-2 inline-flex space-x-2 justify-center hide-on-pdf">
-                                <button class="bg-red-500 text-white px-2 py-1 rounded clear-signature flex items-center">
-                                    Limpiar
-                                </button>
-                                <label class="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer flex items-center">
-                                    <input type="file" class="hidden" accept="image/*">
-                                    Subir
-                                </label>
-                            </div>
-                        </td>
-                        <td class="border border-gray-400 p-2 text-xs">
-                            <label><strong>1.</strong> SI <input type="radio" name="comportamiento1" class="mr-2"> NO <input type="radio" name="comportamiento1" class="mr-2"></label><br>
-                            <label><strong>2.</strong> SI <input type="radio" name="comportamiento2" class="mr-2"> NO <input type="radio" name="comportamiento2" class="mr-2"></label><br>
-                            <label><strong>3.</strong> SI <input type="radio" name="comportamiento3" class="mr-2"> NO <input type="radio" name="comportamiento3" class="mr-2"></label><br>
-                            <label><strong>4.</strong> SI <input type="radio" name="comportamiento4" class="mr-2"> NO <input type="radio" name="comportamiento4" class="mr-2"></label><br>
-                            <label><strong>5.</strong> SI <input type="radio" name="comportamiento5" class="mr-2"> NO <input type="radio" name="comportamiento5" class="mr-2"></label>
-                        </td>
-                        <td class="border border-gray-400 p-2">
-                            <input placeholder="-" type="text" class="w-full border-none p-1 text-xs" maxlength="28">
-                            <input type="text" class="w-full border-none p-1 text-xs" maxlength="28">
-                        </td>
-                        <td class="border border-gray-400 p-2">
-                            <input placeholder="-" type="text" class="w-full border-none p-1 text-xs" maxlength="28">
-                            <input type="text" class="w-full border-none p-1 text-xs" maxlength="28">
-                        </td>
-                        <td class="border border-gray-400 p-2">
-                            <input type="text" class="border border-gray-400 p-1 transparent-input" placeholder="-">
-                        </td>
-                        <td class="border border-gray-400 p-2">
-                            <input type="date" class="border border-gray-400 p-1 transparent-input">
-                        </td>
-                        <td class="border border-gray-400 p-2 text-center">
-                            <button class="bg-red-500 text-white px-2 py-1 rounded remove-row">X</button>
-                        </td>
-                    </tr>
+                    
                 </tbody>
             </table>
         </div>

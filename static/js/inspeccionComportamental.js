@@ -23,148 +23,155 @@ function moveToPrevious(event, currentInput) {
         }
     }
 }
+document.querySelectorAll('input, textarea').forEach((field, index, fields) => {
+    field.addEventListener('input', (event) => moveToNext(event, fields[index + 1]));
+});
 
-// Función para subir y mostrar una imagen en el canvas como firma
-function uploadSignature(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = event.target.closest('td').querySelector('.signature-pad');
-                const ctx = canvas.getContext("2d");
-                
-                // Limpiar el canvas antes de dibujar
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Calcular la escala para mantener la proporción de la imagen
-                const scale = Math.min(canvas.width / img.width, canvas.height / img.height);
-                const x = (canvas.width - img.width * scale) / 2;  // Centrado horizontal
-                const y = (canvas.height - img.height * scale) / 2; // Centrado vertical
-                
-                // Dibujar la imagen escalada y centrada en el canvas
-                ctx.drawImage(img, 0, 0, img.width, img.height, x, y, img.width * scale, img.height * scale);
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.signature-pad').forEach(canvas => {
+        new SignaturePad(canvas);
+    });
+
+     function uploadSignature(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    const td = event.target.closest('td');
+                    const canvas = td.querySelector('.signature-pad');
+                    const ctx = canvas.getContext("2d");
+
+                    // Definir dimensiones fijas del canvas
+                    const maxWidth = 150;
+                    const maxHeight = 50;
+
+                    canvas.width = maxWidth;
+                    canvas.height = maxHeight;
+
+                    // Limpiar el canvas antes de dibujar
+                    ctx.clearRect(0, 0, maxWidth, maxHeight);
+
+                    // Calcular escala proporcional
+                    let scale = Math.min(maxWidth / img.width, maxHeight / img.height);
+                    let newWidth = img.width * scale;
+                    let newHeight = img.height * scale;
+
+                    // Centrar la imagen en el canvas
+                    let xOffset = (maxWidth - newWidth) / 2;
+                    let yOffset = (maxHeight - newHeight) / 2;
+
+                    ctx.drawImage(img, xOffset, yOffset, newWidth, newHeight);
+                };
+                img.src = e.target.result;
             };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+            reader.readAsDataURL(file);
+        }
     }
-}
-// Función para limpiar el canvas
-document.querySelector('.clear-signature').addEventListener('click', function() {
-    const canvas = document.querySelector('.signature-pad');
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
-});
-document.getElementById('add-row').addEventListener('click', function() {
-    const tableBody = document.getElementById('table-body');
 
-    if (tableBody.rows.length >= 17) {
-        const toast = document.createElement('div');
-        toast.classList.add(
-            'fixed', 'top-20', 'left-1/2', '-translate-x-1/2', '-translate-y-1/2', 
-            'bg-orange-300', 'text-black', 'px-6', 'py-3', 'rounded-lg', 
-            'shadow-lg', 'transition-all', 'duration-300', 'ease-in-out', 
-            'text-center'
-        );
-        toast.textContent = 'Solo puedes agregar un máximo de 17 registros, envía y crea otro archivo para poder seguir registrando. Gracias.';
-        
-        document.body.appendChild(toast);
-    
-        setTimeout(() => {
-            toast.classList.add('opacity-0');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    
-        return;
-    }
-    
-    const newRow = document.createElement('tr');
-    newRow.innerHTML = `
-        <td class="border border-gray-400 p-2">
-            <input type="date" class="border border-gray-400 p-1 transparent-input" id="fecha">
-        </td>
-        <td class="border border-gray-400 p-2">
-            <input type="time" class="border border-gray-400 p-1 transparent-input" id="hora">
-        </td>
-        <td class="border border-gray-400 p-2">
-            <input type="text" placeholder="." class="border border-gray-400 p-1 transparent-input">
-        </td>
-        <td class="border border-gray-400 p-2 flex flex-col items-center justify-center">
-            <canvas class="border border-gray-400 p-1 signature-pad" width="155" height="30"></canvas>
-            <div class="mt-2 inline-flex space-x-2 justify-center hide-on-pdf">
-                <button class="bg-red-500 text-white px-2 py-1 rounded clear-signature flex items-center">
-                    Limpiar
-                </button>
-                <label class="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer flex items-center">
-                    <input type="file" class="hidden" accept="image/*" id="upload-signature" onchange="uploadSignature(event)">
-                    Subir
-                </label>
-            </div>
-        </td>
-        <td class="border border-gray-400 p-2 text-xs">
-            <label><strong>1.</strong> SI <input type="radio" name="comportamiento1-${tableBody.rows.length + 1}" class="mr-2"> NO <input type="radio" name="comportamiento1-${tableBody.rows.length + 1}" class="mr-2"></label><br>
-            <label><strong>2.</strong> SI <input type="radio" name="comportamiento2-${tableBody.rows.length + 1}" class="mr-2"> NO <input type="radio" name="comportamiento2-${tableBody.rows.length + 1}" class="mr-2"></label><br>
-            <label><strong>3.</strong> SI <input type="radio" name="comportamiento3-${tableBody.rows.length + 1}" class="mr-2"> NO <input type="radio" name="comportamiento3-${tableBody.rows.length + 1}" class="mr-2"></label><br>
-            <label><strong>4.</strong> SI <input type="radio" name="comportamiento4-${tableBody.rows.length + 1}" class="mr-2"> NO <input type="radio" name="comportamiento4-${tableBody.rows.length + 1}" class="mr-2"></label><br>
-            <label><strong>5.</strong> SI <input type="radio" name="comportamiento5-${tableBody.rows.length + 1}" class="mr-2"> NO <input type="radio" name="comportamiento5-${tableBody.rows.length + 1}" class="mr-2"></label>
-        </td>
-        <td class="border border-gray-400 p-2" style="width: 200px;">
-            <input placeholder="." type="text" class="w-full border-none p-1 text-xs" maxlength="28">
-            <input type="text" class="w-full border-none p-1 text-xs" maxlength="28">
-        </td>
-        <td class="border border-gray-400 p-2" style="width: 200px;">
-            <input placeholder="." type="text" class="w-full border-none p-1 text-xs" maxlength="28">
-            <input type="text" class="w-full border-none p-1 text-xs" maxlength="28">
-        </td>
-        <td class="border border-gray-400 p-2">
-            <input type="text" class="border border-gray-400 p-1 transparent-input" placeholder=".">
-        </td>
-        <td class="border border-gray-400 p-2">
-            <input type="date" class="border border-gray-400 p-1 transparent-input">
-        </td>
-        <td class="border border-gray-400 p-2 text-center">
-            <button class="bg-red-500 text-white px-2 py-1 rounded remove-row flex items-center justify-center mx-auto">
-                X
-            </button>
-        </td>
-    `;
-    
-    newRow.querySelector('.remove-row').addEventListener('click', function() {
-        newRow.remove();
-    });
-    tableBody.appendChild(newRow);
-
-    // Inicializar SignaturePad para el canvas de la nueva fila
-    const canvas = newRow.querySelector('.signature-pad');
-    const signaturePad = new SignaturePad(canvas);
-    
-    // Asignar el evento para cargar la imagen
-    const fileInput = newRow.querySelector('.upload-signature');
-    fileInput.addEventListener('change', uploadSignature);
-    
-    // Evento para limpiar la firma en este canvas específico
-    newRow.querySelector('.clear-signature').addEventListener('click', function() {
+    function clearSignature(event) {
+        const canvas = event.target.closest('td').querySelector('.signature-pad');
+        const signaturePad = new SignaturePad(canvas);
         signaturePad.clear();
+    }
+
+    document.querySelectorAll('.clear-signature').forEach(button => {
+        button.addEventListener('click', clearSignature);
+    });
+
+    document.getElementById('add-row').addEventListener('click', function () {
+        const tableBody = document.getElementById('table-body');
+
+        if (tableBody.rows.length >= 17) {
+            alert("Solo puedes agregar un máximo de 17 registros.");
+            return;
+        }
+
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td class="border border-gray-400 p-2 w-24">
+                <input type="date" class="w-full border-none p-1 text-xs transparent-input">
+            </td>
+            <td class="border border-gray-400 p-2 w-24">
+                <input type="time" class="w-full border-none p-1 text-xs transparent-input">
+            </td>
+            <td class="border border-gray-400 p-2 w-24">
+                <textarea id="nombre" rows="2" cols="15" wrap="hard"></textarea>
+            </td>
+           <td class="border border-gray-400 p-2 w-24 text-center">
+                <div class="flex flex-col items-center">
+                    <canvas class="border border-gray-400 signature-pad w-full h-12"></canvas>
+                    <div class="mt-2 flex space-x-2 justify-center hide-on-pdf">
+                        <button class="bg-red-500 text-white px-2 py-1 rounded text-xs clear-signature">Limpiar</button>
+                        <label class="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer text-xs">
+                            <input type="file" class="hidden upload-signature" accept="image/*">
+                            Subir
+                        </label>
+                    </div>
+                </div>
+            </td>
+            <td class="border border-gray-400 p-2 w-24 text-xs">
+                <label><strong>1.</strong> SI <input type="radio" name="comportamiento1-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento1-${tableBody.rows.length + 1}"></label><br>
+                <label><strong>2.</strong> SI <input type="radio" name="comportamiento2-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento2-${tableBody.rows.length + 1}"></label><br>
+                <label><strong>3.</strong> SI <input type="radio" name="comportamiento3-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento3-${tableBody.rows.length + 1}"></label><br>
+                <label><strong>4.</strong> SI <input type="radio" name="comportamiento4-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento4-${tableBody.rows.length + 1}"></label><br>
+                <label><strong>5.</strong> SI <input type="radio" name="comportamiento5-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento5-${tableBody.rows.length + 1}"></label>
+            </td>
+            <td class="border border-gray-400 p-2 w-24">
+                <textarea class="w-full border-none p-1 text-xs" rows="2"></textarea>
+            </td>
+            <td class="border border-gray-400 p-2 w-24">
+                <textarea class="w-full border-none p-1 text-xs" rows="2"></textarea>
+            </td>
+            <td class="border border-gray-400 p-2 w-24">
+                <textarea class="w-full border-none p-1 text-xs" rows="2"></textarea>
+            </td>
+            <td class="border border-gray-400 p-2 w-24">
+                <input type="date" class="w-full border-none p-1 text-xs transparent-input">
+            </td>
+            <td class="border border-gray-400 p-2 w-16 text-center">
+                <button class="bg-red-500 text-white px-2 py-1 rounded remove-row">X</button>
+            </td>
+        `;
+
+
+        // Agregar la nueva fila a la tabla
+        tableBody.appendChild(newRow);
+
+        // Inicializar SignaturePad en el nuevo canvas
+        const newCanvas = newRow.querySelector('.signature-pad');
+        const newSignaturePad = new SignaturePad(newCanvas);
+
+        // Asignar eventos a los botones de limpiar firma
+        newRow.querySelector('.clear-signature').addEventListener('click', function () {
+            newSignaturePad.clear();
+        });
+
+        // Asignar evento a la carga de imágenes
+        newRow.querySelector('.upload-signature').addEventListener('change', uploadSignature);
+
+        // Asignar evento para eliminar la fila
+        newRow.querySelector('.remove-row').addEventListener('click', function () {
+            newRow.remove();
+        });
     });
 });
 
+function clearSignature(event) {
+    const canvas = event.target.closest('td').querySelector('.signature-pad');
+    const signaturePad = new SignaturePad(canvas);
+    signaturePad.clear();
+}
 
-// Inicializar los pads de firma en las filas existentes
+document.querySelectorAll('.clear-signature').forEach(button => {
+    button.addEventListener('click', clearSignature);
+});
+
 document.querySelectorAll('.signature-pad').forEach(canvas => {
     new SignaturePad(canvas);
 });
 
-//Funcion para limpiar la firma
-document.querySelectorAll('.clear-signature').forEach(button => {
-    button.addEventListener('click', function() {
-        const canvas = this.closest('td').querySelector('.signature-pad');
-        const signaturePad = new SignaturePad(canvas);
-        signaturePad.clear();
-    });
-});
-//Funcion para eliminar una fila
 document.getElementById('table-body').addEventListener('click', function(event) {
     if (event.target.classList.contains('delete-row')) {
         event.target.closest('tr').remove();
@@ -195,94 +202,113 @@ downloadButton.addEventListener('click',function(event){
         event.stopImmediatePropagation();
     }
 });
-
 downloadButton.addEventListener('click', function() {
+    console.log("Botón de descarga clickeado");
     const { jsPDF } = window.jspdf;
     const formContent = document.getElementById('form-content');
     const clearButtons = formContent.querySelectorAll('.clear-signature');
     const actionColumns = formContent.querySelectorAll('.hide-on-pdf');
-    const deleteColumn = document.querySelectorAll('td:last-child, th:last-child'); // Última columna (Eliminar)
+    const deleteColumn = document.querySelectorAll('td:last-child, th:last-child');
 
-    // Deshabilitar el botón para evitar clics múltiples
     this.disabled = true;
-
-    // Ocultar botones de limpiar, columnas de acción y la columna "Eliminar"
+    
     clearButtons.forEach(button => button.style.display = 'none');
     actionColumns.forEach(column => column.style.display = 'none');
     deleteColumn.forEach(column => column.style.display = 'none');
 
-    html2canvas(formContent, { backgroundColor: null }).then(canvas => {
+    document.body.style.width = `${formContent.scrollWidth}px`;
+    document.body.style.height = `${formContent.scrollHeight}px`;
+    document.querySelectorAll("textarea").forEach(textarea => {
+        let div = document.createElement("div");
+        div.textContent = textarea.value;
+        div.style.cssText = `
+            white-space: pre-wrap; 
+            word-wrap: break-word; 
+            width: ${textarea.offsetWidth}px; 
+            height: ${textarea.offsetHeight}px;
+            font-family: inherit; 
+            font-size: inherit;
+        `;
+        textarea.parentNode.replaceChild(div, textarea);
+    });
+    
+    console.log("Capturando contenido con html2canvas...");
+    html2canvas(formContent, {
+        backgroundColor: null,
+        scale: 2,
+        width: formContent.scrollWidth,
+        height: formContent.scrollHeight,
+        useCORS: true
+    }).then(canvas => {
+        console.log("Canvas convertido a imagen");
+
+        document.body.style.width = '';
+        document.body.style.height = '';
+    
         const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('portrait');
+        const pdf = new jsPDF('portrait', 'mm', 'a4');
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-
-        // Guardar el PDF
+        
+        console.log("PDF generado correctamente");
         pdf.save('inspeccion_comportamental.pdf');
-
-        // Restaurar los elementos ocultos después de la captura
+    
         clearButtons.forEach(button => button.style.display = 'block');
         actionColumns.forEach(column => column.style.display = 'table-cell');
-        deleteColumn.forEach(column => column.style.display = 'table-cell'); // Mostrar columna de nuevo
+        deleteColumn.forEach(column => column.style.display = 'table-cell');
 
-        // Enviar el PDF al servidor
+        // Convertir PDF a base64 y enviarlo al servidor
         const pdfData = pdf.output('datauristring').split(',')[1];
+
         if (pdfData) {
+            console.log("Enviando PDF al servidor...");
             fetch('inspeccionComportamental.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `btnEnviarCorreo=true&pdfData=${encodeURIComponent(pdfData)}`
             })
             .then(response => response.text())
             .then(result => {
-                console.log(result);
+                console.log("Respuesta del servidor:", result);
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Error en la petición:', error);
             });
+            
+            setTimeout(() => {
+                window.location.href = 'index.php';
+            }, 500);
+        } else {
+            console.error("No se generó correctamente el PDF en base64.");
         }
 
-        // Habilitar el botón nuevamente después de enviar
-        this.disabled = false;
+        downloadButton.disabled = false;
     });
-
-    // Redirigir inmediatamente mientras el proceso continúa
-    setTimeout(() => {
-        window.location.href = 'index.php'; // Cambiar 'index.php' si es necesario
-    }, 500); // Redirección más rápida: después de 500 ms
-});
-
-// Inicializar los pads de firma
-document.querySelectorAll('.signature-pad').forEach(canvas => {
-    new SignaturePad(canvas);
 });
 
 function enviarCorreo() {
+    console.log("Enviando correo...");
     $.ajax({
         url: 'inspeccionComportamental.php',
         method: 'POST',
         data: { btnEnviarCorreo: true },
         success: function(response) {
-            // Mostrar notificación
+            console.log("Correo enviado, respuesta del servidor:", response);
             $('#toast-simple').removeClass('hidden').fadeIn();
-
-            // Redirigir al índice casi inmediatamente
             setTimeout(function() {
                 window.location.href = 'index.php';
-            }, 500); // Cambiar el tiempo si es necesario
+            }, 500);
         },
         error: function() {
+            console.error("Hubo un error al enviar el correo.");
             alert("Hubo un error al enviar el correo.");
         }
     });
 }
 
-// Asignar el evento al formulario para llamar la función enviarCorreo
 $('#frmEnviarCorreo').on('submit', function(e) {
-    e.preventDefault(); // Evitar el envío predeterminado
-    enviarCorreo(); // Llamar a la función para enviar el correo
+    e.preventDefault();
+    enviarCorreo();
 });
