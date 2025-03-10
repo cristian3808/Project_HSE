@@ -272,18 +272,16 @@ downloadButton.addEventListener('click', function() {
             .then(response => response.text())
             .then(result => {
                 console.log("Respuesta del servidor:", result);
+                // Redirigir solo después de recibir la respuesta del servidor
+                window.location.href = 'index.php';
             })
             .catch(error => {
                 console.error('Error en la petición:', error);
-            });
-            
-            setTimeout(() => {
+                // Redirigir también en caso de error, si lo deseas
                 window.location.href = 'index.php';
-            }, 500);
-        } else {
-            console.error("No se generó correctamente el PDF en base64.");
+            });
         }
-
+        
         downloadButton.disabled = false;
     });
 });

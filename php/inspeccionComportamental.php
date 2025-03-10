@@ -6,67 +6,73 @@ require 'PHPMailer/src/SMTP.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Función para enviar correos electrónicos con archivo PDF adjunto
-function enviarCorreoConPdf($correo, $pdfPath) {
-    $mail = new PHPMailer(true);
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = 'pruebasoftwarerc@gmail.com';
-    $mail->Password = 'abkgbjoekgsvhtnj'; // Asegúrate de usar credenciales seguras
-    $mail->SMTPSecure = 'tls';
-    $mail->Port = 587;
-
-    try {
-        echo "Intentando enviar correo a: $correo <br>"; // Depuración
-
-        $mail->setFrom('tu_correo@gmail.com', 'HSE TF'); // Cambiar a tu correo
-        $mail->addAddress($correo);
-        $mail->isHTML(true);
-        $mail->Subject = 'INSPECCION COMPORTAMENTAL';
-        $mail->Body = "Inspección Comportamental.";
-        $mail->addAttachment($pdfPath, 'inspeccion_comportamental.pdf');
-        
-        if ($mail->send()) {
-            echo "Correo enviado con éxito a: $correo <br>";
-            return 'El mensaje se envió correctamente a ' . $correo;
-        } else {
-            echo "Error al enviar correo a: $correo <br>";
-            return "Hubo un error al enviar el mensaje: {$mail->ErrorInfo}";
-        }
-    } catch (Exception $e) {
-        echo "Excepción capturada: {$mail->ErrorInfo} <br>";
-        return "Hubo un error al enviar el mensaje: {$mail->ErrorInfo}";
-    }
-}
-
-// Variable para almacenar el resultado del envío del correo
-$resultado = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnEnviarCorreo'])) {
-    echo "Solicitud POST recibida <br>"; // Depuración
-
-    $correos = ['mario.acosta@tfauditores.c1om', 'cristian.mora3808@gmail.com']; // Agregar los correos deseados
-
+    // Decodificar el PDF recibido en base64
     $pdfPath = 'inspeccion_comportamental.pdf';
     $pdfData = base64_decode($_POST['pdfData']);
 
     if ($pdfData === false) {
-        echo "Error: PDF no válido <br>";
-    } else {
-        echo "PDF decodificado correctamente <br>";
+        echo "Error: PDF no válido";
+        exit;
+    }
 
-        file_put_contents($pdfPath, $pdfData);
-        echo "PDF guardado en el servidor <br>";
+    // Guardar el PDF temporalmente en el servidor
+    file_put_contents($pdfPath, $pdfData);
 
+    // Enviar respuesta inmediata al cliente para que no espere el envío del correo
+    header('Content-Type: text/plain');
+    echo "El correo se está enviando en segundo plano...";
+    header('Connection: close');
+    header('Content-Length: ' . ob_get_length());
+    ob_end_flush();
+    flush();
+    
+    // Permitir que el script continúe ejecutándose aunque el usuario se desconecte
+    ignore_user_abort(true);
+
+    // Definir los correos destinatarios
+    $correos = ['mario.acosta@tfauditores.c1om', 'cristian.mora3808@gmail.com'];
+
+    // Configurar PHPMailer una sola vez para reutilizar la conexión SMTP
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'pruebasoftwarerc@gmail.com';
+        $mail->Password   = 'abkgbjoekgsvhtnj'; // Usa credenciales seguras
+        $mail->SMTPSecure = 'tls';
+        $mail->Port       = 587;
+        $mail->SMTPKeepAlive = true; // Mantiene la conexión abierta para múltiples envíos
+
+        $mail->setFrom('tu_correo@gmail.com', 'HSE TF'); // Cambia por el correo remitente real
+        $mail->isHTML(true);
+        $mail->Subject = 'INSPECCION COMPORTAMENTAL';
+        $mail->Body    = "Inspección Comportamental.";
+        // Adjuntar el PDF que se va a enviar
+        $mail->addAttachment($pdfPath, 'inspeccion_comportamental.pdf');
+
+        // Enviar correo a cada destinatario reutilizando la misma conexión
         foreach ($correos as $correo) {
-            $resultado .= enviarCorreoConPdf($correo, $pdfPath) . '<br>';
-        }
+            $mail->clearAddresses(); // Limpiar destinatarios anteriores
+            $mail->addAddress($correo);
+            echo "Intentando enviar correo a: $correo <br>"; // Depuración
 
-        if (file_exists($pdfPath)) {
-            unlink($pdfPath);
-            echo "PDF eliminado del servidor <br>";
+            if ($mail->send()) {
+                echo "Correo enviado con éxito a: $correo <br>";
+            } else {
+                echo "Error al enviar correo a: $correo <br>";
+            }
         }
+        $mail->smtpClose(); // Cierra la conexión SMTP al finalizar
+    } catch (Exception $e) {
+        echo "Excepción capturada: {$mail->ErrorInfo} <br>";
+    }
+
+    // Eliminar el PDF temporal del servidor
+    if (file_exists($pdfPath)) {
+        unlink($pdfPath);
+        echo "PDF eliminado del servidor <br>";
     }
 }
 ?>
