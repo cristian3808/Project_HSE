@@ -114,12 +114,12 @@ require_once'php/inspeccionDotacion.php';
                 </th>
                 <th class="border border-gray-400 p-2">
                     EPP
-                    <div class="grid grid-cols-5 gap-2 mt-1 text-xs">
-                        <span>Casco</span>
-                        <span>Gafas</span>
-                        <span>Guantes</span>
-                        <span>Mascarilla</span>
-                        <span class="ml-2">Filtro</span>
+                    <div class="grid grid-cols-5 gap-5 mt-1 text-xs">
+                        <span >Casco</span>
+                        <span class="-ml-2">Gafas</span>
+                        <span class="-ml-4">Guantes</span>
+                        <span class="-ml-3">Mascarilla</span>
+                        <span class="ml-0">Filtro</span>
                     </div>
                 </th>
                 <th class="border border-gray-400 p-2">
@@ -131,9 +131,9 @@ require_once'php/inspeccionDotacion.php';
                 </th>
                 <th class="border border-gray-400 p-2">
                     ROPA DE INVIERNO
-                    <div class="grid grid-cols-2 gap-2 mt-1 text-xs">
-                        <span>Impermeable</span>
-                        <span>Botas</span>
+                    <div class="grid grid-cols-3 gap-2 mt-1 text-xs">
+                        <span >Impermeable</span>
+                        <span class="ml-10">Botas</span>
                     </div>
                 </th>
                 <th class="border border-gray-400 p-2 text-base w-16">Eliminar</th>

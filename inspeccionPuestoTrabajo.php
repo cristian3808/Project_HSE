@@ -238,7 +238,7 @@ require_once  'php/inspeccionPuestoTrabajo.php';
                     </td>                 
                 </tr>
                 <tr>
-                    <td class="border border-gray-400 p-1 text-base">Elementos de protección persoN/Al (EPP),dotación,conocimiento de su mantenimiento.</td>
+                    <td class="border border-gray-400 p-1 text-base">Elementos de protección personal (EPP),dotación,conocimiento de su mantenimiento.</td>
                     <td class="border border-gray-400 p-2 text-center">
                         <select class="w-full border-none p-1 text-base">
                             <option value="">Seleccione</option>
@@ -284,7 +284,7 @@ require_once  'php/inspeccionPuestoTrabajo.php';
                     </td>                
                 </tr>
                 <tr>
-                    <td class="border border-gray-400 p-1 text-base">Exposición a ruidos permanente (OcasioN/Ado por maquiN/As o equipo).</td>
+                    <td class="border border-gray-400 p-1 text-base">Exposición a ruidos permanente (Ocasionado por maquinas o equipo).</td>
                     <td class="border border-gray-400 p-2 text-center">
                         <select class="w-full border-none p-1 text-base">
                             <option value="">Seleccione</option>
@@ -307,7 +307,7 @@ require_once  'php/inspeccionPuestoTrabajo.php';
                     </td>
                 </tr>
                 <tr>
-                    <td class="border border-gray-400 p-1 text-base">Condiciones de ilumiN/Ación (limpieza de lámparas y lumiN/Arias) y ventilación del puesto de trabajo.</td>
+                    <td class="border border-gray-400 p-1 text-base">Condiciones de iluminación (limpieza de lámparas y luminarias) y ventilación del puesto de trabajo.</td>
                     <td class="border border-gray-400 p-2 text-center">
                         <select class="w-full border-none p-1 text-base">
                             <option value="">Seleccione</option>
@@ -330,7 +330,7 @@ require_once  'php/inspeccionPuestoTrabajo.php';
                     </td>
                 </tr>
                 <tr>
-                    <td class="border border-gray-400 p-1 text-base">Condiciones ergonómicas del puesto de trabajo, (sillas iN/Adecuadas, escritorios, levantamiento y transporte de cargas).</td>
+                    <td class="border border-gray-400 p-1 text-base">Condiciones ergonómicas del puesto de trabajo, (sillas inadecuadas, escritorios, levantamiento y transporte de cargas).</td>
                     <td class="border border-gray-400 p-2 text-center">
                         <select class="w-full border-none p-1 text-base">
                             <option value="">Seleccione</option>
