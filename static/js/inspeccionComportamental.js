@@ -1,8 +1,6 @@
 // Función para mover al siguiente input
 function moveToNext(event, nextInput) {
     const input = event.target;
-
-    // Si el campo tiene el número máximo de caracteres, movemos el foco al siguiente input
     if (input.value.length === input.maxLength && nextInput) {
         nextInput.focus();
     }
@@ -10,76 +8,87 @@ function moveToNext(event, nextInput) {
 
 // Función para mover al input anterior al presionar Backspace
 function moveToPrevious(event, currentInput) {
-    if (event.key === "Backspace") {
-        // Si el campo está vacío, movemos el foco al input anterior
-        if (currentInput && currentInput.value === "") {
-            let previousInput = currentInput.previousElementSibling;
-            while (previousInput && previousInput.value === "") {
-                previousInput = previousInput.previousElementSibling;
-            }
-            if (previousInput) {
-                previousInput.focus();
-            }
+    if (event.key === "Backspace" && currentInput.value === "") {
+        let previousInput = currentInput.previousElementSibling;
+        while (previousInput && previousInput.value === "") {
+            previousInput = previousInput.previousElementSibling;
         }
+        if (previousInput) previousInput.focus();
     }
 }
+
+// Inicializar eventos de navegación entre inputs
 document.querySelectorAll('input, textarea').forEach((field, index, fields) => {
     field.addEventListener('input', (event) => moveToNext(event, fields[index + 1]));
+    field.addEventListener('keydown', (event) => moveToPrevious(event, field));
 });
 
 document.addEventListener("DOMContentLoaded", function () {
+    // Inicializar SignaturePad en todos los canvas existentes
     document.querySelectorAll('.signature-pad').forEach(canvas => {
         new SignaturePad(canvas);
     });
 
-     function uploadSignature(event) {
+    // Función para subir imagen de firma al canvas
+    function uploadSignature(event) {
         const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const img = new Image();
-                img.onload = function () {
-                    const td = event.target.closest('td');
-                    const canvas = td.querySelector('.signature-pad');
-                    const ctx = canvas.getContext("2d");
+        if (!file) return;
 
-                    // Definir dimensiones fijas del canvas
-                    const maxWidth = 150;
-                    const maxHeight = 50;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                const td = event.target.closest('td');
+                const canvas = td.querySelector('.signature-pad');
+                const ctx = canvas.getContext("2d");
 
-                    canvas.width = maxWidth;
-                    canvas.height = maxHeight;
+                const maxWidth = 150;
+                const maxHeight = 50;
 
-                    // Limpiar el canvas antes de dibujar
-                    ctx.clearRect(0, 0, maxWidth, maxHeight);
+                canvas.width = maxWidth;
+                canvas.height = maxHeight;
+                canvas.style.border = "1px solid #ccc";
+                canvas.style.background = "#fff";
+                canvas.style.display = "block";
 
-                    // Calcular escala proporcional
-                    let scale = Math.min(maxWidth / img.width, maxHeight / img.height);
-                    let newWidth = img.width * scale;
-                    let newHeight = img.height * scale;
+                ctx.clearRect(0, 0, maxWidth, maxHeight);
 
-                    // Centrar la imagen en el canvas
-                    let xOffset = (maxWidth - newWidth) / 2;
-                    let yOffset = (maxHeight - newHeight) / 2;
+                const scale = Math.min(maxWidth / img.width, maxHeight / img.height);
+                const newWidth = img.width * scale;
+                const newHeight = img.height * scale;
+                const xOffset = (maxWidth - newWidth) / 2;
+                const yOffset = (maxHeight - newHeight) / 2;
 
-                    ctx.drawImage(img, xOffset, yOffset, newWidth, newHeight);
-                };
-                img.src = e.target.result;
+                ctx.drawImage(img, xOffset, yOffset, newWidth, newHeight);
+
+                td.style.height = `${maxHeight + 30}px`;
+                td.style.overflow = "hidden";
+
+                const buttonsContainer = td.querySelector(".buttons-container");
+                if (buttonsContainer) {
+                    buttonsContainer.style.display = "flex";
+                    buttonsContainer.style.justifyContent = "center";
+                    buttonsContainer.style.marginTop = "5px";
+                }
             };
-            reader.readAsDataURL(file);
-        }
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     }
 
+    // Función para limpiar la firma
     function clearSignature(event) {
         const canvas = event.target.closest('td').querySelector('.signature-pad');
         const signaturePad = new SignaturePad(canvas);
         signaturePad.clear();
     }
 
+    // Asignar evento a los botones existentes para limpiar firma
     document.querySelectorAll('.clear-signature').forEach(button => {
         button.addEventListener('click', clearSignature);
     });
 
+    // Evento para agregar una nueva fila
     document.getElementById('add-row').addEventListener('click', function () {
         const tableBody = document.getElementById('table-body');
 
@@ -97,64 +106,48 @@ document.addEventListener("DOMContentLoaded", function () {
                 <input type="time" class="w-full border-none p-1 text-xs transparent-input">
             </td>
             <td class="border border-gray-400 p-2 w-24">
-                <textarea id="nombre" rows="2" cols="15" wrap="hard"></textarea>
+                <textarea rows="2" cols="15" wrap="hard"></textarea>
             </td>
-           <td class="border border-gray-400 p-2 w-24 text-center">
-                <div class="flex flex-col items-center">
-                    <canvas class="border border-gray-400 signature-pad w-full h-12"></canvas>
-                    <div class="mt-2 flex space-x-2 justify-center hide-on-pdf">
-                        <button class="bg-red-500 text-white px-2 py-1 rounded text-xs clear-signature">Limpiar</button>
-                        <label class="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer text-xs">
-                            <input type="file" class="hidden upload-signature" accept="image/*">
-                            Subir
-                        </label>
-                    </div>
+            <td class="border border-gray-300 p-1 flex flex-col items-center justify-center">
+                <canvas class="signature-pad border border-gray-400" width="200" height="40"></canvas>
+                <div class="buttons-container flex space-x-2 mt-2">
+                    <button type="button" class="bg-red-500 text-white px-2 py-1 rounded clear-signature flex items-center h-5">
+                        <svg class="w-4 h-4 mr-2 text-red-200" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M3 6h18v2H3V6zm3 3h12v13H6V9zm4-5h4v2h-4V4zM5 6h14v16a2 2 0 01-2 2H7a2 2 0 01-2-2V6zm6 5v3h3V11h-3z"/>
+                        </svg>
+                        Limpiar
+                    </button>
+                    <label class="bg-blue-500 text-white px-2 py-1 rounded cursor-pointer flex items-center h-5 hide-on-pdf">
+                        <input type="file" class="upload-signature hidden" accept="image/*">
+                        <svg class="w-4 h-4 mr-2 text-blue-200" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 2L8.59 5.41 13.17 10H4v2h9.17l-4.58 4.59L12 18l8-8-8-8zm0 4v3h-1v4h1v3h4v-3h1V9h-1V6h-4z"/>
+                        </svg>
+                        Subir firma
+                    </label>
                 </div>
             </td>
             <td class="border border-gray-400 p-2 w-24 text-xs">
-                <label><strong>1.</strong> SI <input type="radio" name="comportamiento1-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento1-${tableBody.rows.length + 1}"></label><br>
-                <label><strong>2.</strong> SI <input type="radio" name="comportamiento2-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento2-${tableBody.rows.length + 1}"></label><br>
-                <label><strong>3.</strong> SI <input type="radio" name="comportamiento3-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento3-${tableBody.rows.length + 1}"></label><br>
-                <label><strong>4.</strong> SI <input type="radio" name="comportamiento4-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento4-${tableBody.rows.length + 1}"></label><br>
-                <label><strong>5.</strong> SI <input type="radio" name="comportamiento5-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento5-${tableBody.rows.length + 1}"></label>
+                ${[1, 2, 3, 4, 5].map(i => `
+                    <label><strong>${i}.</strong> SI <input type="radio" name="comportamiento${i}-${tableBody.rows.length + 1}"> NO <input type="radio" name="comportamiento${i}-${tableBody.rows.length + 1}"></label><br>
+                `).join('')}
             </td>
-            <td class="border border-gray-400 p-2 w-24">
-                <textarea class="w-full border-none p-1 text-xs" rows="2"></textarea>
-            </td>
-            <td class="border border-gray-400 p-2 w-24">
-                <textarea class="w-full border-none p-1 text-xs" rows="2"></textarea>
-            </td>
-            <td class="border border-gray-400 p-2 w-24">
-                <textarea class="w-full border-none p-1 text-xs" rows="2"></textarea>
-            </td>
-            <td class="border border-gray-400 p-2 w-24">
-                <input type="date" class="w-full border-none p-1 text-xs transparent-input">
-            </td>
+            <td class="border border-gray-400 p-2 w-24"><textarea class="w-full border-none p-1 text-xs" rows="2"></textarea></td>
+            <td class="border border-gray-400 p-2 w-24"><textarea class="w-full border-none p-1 text-xs" rows="2"></textarea></td>
+            <td class="border border-gray-400 p-2 w-24"><textarea class="w-full border-none p-1 text-xs" rows="2"></textarea></td>
+            <td class="border border-gray-400 p-2 w-24"><input type="date" class="w-full border-none p-1 text-xs transparent-input"></td>
             <td class="border border-gray-400 p-2 w-16 text-center">
                 <button class="bg-red-500 text-white px-2 py-1 rounded remove-row">X</button>
             </td>
         `;
 
-
-        // Agregar la nueva fila a la tabla
         tableBody.appendChild(newRow);
 
-        // Inicializar SignaturePad en el nuevo canvas
-        const newCanvas = newRow.querySelector('.signature-pad');
-        const newSignaturePad = new SignaturePad(newCanvas);
+        const canvas = newRow.querySelector('.signature-pad');
+        const signaturePad = new SignaturePad(canvas);
 
-        // Asignar eventos a los botones de limpiar firma
-        newRow.querySelector('.clear-signature').addEventListener('click', function () {
-            newSignaturePad.clear();
-        });
-
-        // Asignar evento a la carga de imágenes
+        newRow.querySelector('.clear-signature').addEventListener('click', () => signaturePad.clear());
         newRow.querySelector('.upload-signature').addEventListener('change', uploadSignature);
-
-        // Asignar evento para eliminar la fila
-        newRow.querySelector('.remove-row').addEventListener('click', function () {
-            newRow.remove();
-        });
+        newRow.querySelector('.remove-row').addEventListener('click', () => newRow.remove());
     });
 });
 
@@ -163,26 +156,21 @@ function clearSignature(event) {
     const signaturePad = new SignaturePad(canvas);
     signaturePad.clear();
 }
-
 document.querySelectorAll('.clear-signature').forEach(button => {
     button.addEventListener('click', clearSignature);
 });
-
 document.querySelectorAll('.signature-pad').forEach(canvas => {
     new SignaturePad(canvas);
 });
-
 document.getElementById('table-body').addEventListener('click', function(event) {
     if (event.target.classList.contains('delete-row')) {
         event.target.closest('tr').remove();
     }
 });
-
 const localizacionInput = document.getElementById('localizacion');
 const clienteInput = document.getElementById('cliente');
 const numeroContratoInput = document.getElementById('numero-contrato');
 const downloadButton = document.getElementById('download-pdf');
-
 function showAlertIfMissingFields(event){
     let missingFields = [];
     if(!localizacionInput.value) missingFields.push("Localización");
@@ -196,94 +184,95 @@ function showAlertIfMissingFields(event){
     return true;
 }
 
-downloadButton.addEventListener('click',function(event){
+downloadButton.addEventListener('click', async function (event) {
     const isFormValid = showAlertIfMissingFields(event);
-    if(!isFormValid){
+    if (!isFormValid) {
         event.stopImmediatePropagation();
+        return;
     }
-});
-downloadButton.addEventListener('click', function() {
-    console.log("Botón de descarga clickeado");
-    const { jsPDF } = window.jspdf;
+
+    this.disabled = true;
+
     const formContent = document.getElementById('form-content');
     const clearButtons = formContent.querySelectorAll('.clear-signature');
     const actionColumns = formContent.querySelectorAll('.hide-on-pdf');
     const deleteColumn = document.querySelectorAll('td:last-child, th:last-child');
 
-    this.disabled = true;
-    
-    clearButtons.forEach(button => button.style.display = 'none');
-    actionColumns.forEach(column => column.style.display = 'none');
-    deleteColumn.forEach(column => column.style.display = 'none');
+    // Ocultar botones y columnas no deseadas
+    clearButtons.forEach(btn => btn.style.display = 'none');
+    actionColumns.forEach(col => col.style.display = 'none');
+    deleteColumn.forEach(col => col.style.display = 'none');
 
-    document.body.style.width = `${formContent.scrollWidth}px`;
-    document.body.style.height = `${formContent.scrollHeight}px`;
+    // Reemplazar textarea por contenido plano
     document.querySelectorAll("textarea").forEach(textarea => {
-        let div = document.createElement("div");
+        const div = document.createElement("div");
         div.textContent = textarea.value;
         div.style.cssText = `
-            white-space: pre-wrap; 
-            word-wrap: break-word; 
-            width: ${textarea.offsetWidth}px; 
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            width: ${textarea.offsetWidth}px;
             height: ${textarea.offsetHeight}px;
-            font-family: inherit; 
+            font-family: inherit;
             font-size: inherit;
         `;
         textarea.parentNode.replaceChild(div, textarea);
     });
-    
-    console.log("Capturando contenido con html2canvas...");
-    html2canvas(formContent, {
-        backgroundColor: null,
-        scale: 2,
-        width: formContent.scrollWidth,
-        height: formContent.scrollHeight,
-        useCORS: true
-    }).then(canvas => {
-        console.log("Canvas convertido a imagen");
 
-        document.body.style.width = '';
-        document.body.style.height = '';
-    
+    try {
+        const canvas = await html2canvas(formContent, {
+            backgroundColor: null,
+            scale: 2,
+            width: formContent.scrollWidth,
+            height: formContent.scrollHeight,
+            useCORS: true
+        });
+
+        const { jsPDF } = window.jspdf;
         const imgData = canvas.toDataURL('image/png');
         const pdf = new jsPDF('portrait', 'mm', 'a4');
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-        
-        console.log("PDF generado correctamente");
+
+        // Descargar el PDF
         pdf.save('inspeccion_comportamental.pdf');
-    
-        clearButtons.forEach(button => button.style.display = 'block');
-        actionColumns.forEach(column => column.style.display = 'table-cell');
-        deleteColumn.forEach(column => column.style.display = 'table-cell');
 
-        // Convertir PDF a base64 y enviarlo al servidor
-        const pdfData = pdf.output('datauristring').split(',')[1];
+        // Codificar en base64 y enviar al servidor
+        const pdfBase64 = btoa(pdf.output());
 
-        if (pdfData) {
-            console.log("Enviando PDF al servidor...");
-            fetch('inspeccionComportamental.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `btnEnviarCorreo=true&pdfData=${encodeURIComponent(pdfData)}`
-            })
-            .then(response => response.text())
-            .then(result => {
-                console.log("Respuesta del servidor:", result);
-                // Redirigir solo después de recibir la respuesta del servidor
-                window.location.href = 'index.php';
-            })
-            .catch(error => {
-                console.error('Error en la petición:', error);
-                // Redirigir también en caso de error, si lo deseas
-                window.location.href = 'index.php';
-            });
+        const response = await fetch('inspeccionComportamental.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `btnEnviarCorreo=true&pdfData=${encodeURIComponent(pdfBase64)}`
+        });
+
+        const result = await response.text();
+        console.log("Correo enviado correctamente:", result);
+
+        // Mostrar notificación
+        const toast = document.getElementById('toast-simple');
+        if (toast) {
+            toast.classList.remove('hidden');
+            $(toast).fadeIn();
         }
-        
-        downloadButton.disabled = false;
-    });
+
+        // Redireccionar después de 1 segundo
+        setTimeout(() => {
+            window.location.href = 'index.php';
+        }, 1000);
+
+    } catch (error) {
+        console.error("Error al generar o enviar el PDF:", error);
+        alert("Ocurrió un error al generar o enviar el PDF.");
+    } finally {
+        // Restaurar interfaz
+        clearButtons.forEach(btn => btn.style.display = 'block');
+        actionColumns.forEach(col => col.style.display = 'table-cell');
+        deleteColumn.forEach(col => col.style.display = 'table-cell');
+        this.disabled = false;
+    }
 });
 
 function enviarCorreo() {
