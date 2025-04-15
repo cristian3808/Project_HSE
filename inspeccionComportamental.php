@@ -91,7 +91,7 @@ require_once  'php/inspeccionComportamental.php';
             </div>
             <div class="w-1/3 flex flex-col items-end justify-center">
                 <label for="numero-contrato" class="text-center">Número de contrato</label>
-                <input type="text" class="border border-gray-400 p-1 w-96" id="numero-contrato" minlength="5" maxlength="25">
+                <input type="number" class="border border-gray-400 p-1 w-96" id="numero-contrato">
             </div>
         </div>
 

@@ -1,5 +1,4 @@
 <?php
-error_reporting(E_ALL & ~E_NOTICE);
 require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/Exception.php';
 require 'PHPMailer/src/SMTP.php';
@@ -7,58 +6,67 @@ require 'PHPMailer/src/SMTP.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Función para enviar correos con un PDF adjunto
-function enviarCorreoConPdf($correo, $pdfPath) {
-    $mail = new PHPMailer(true);
-    $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
-    $mail->SMTPAuth = true;
-    $mail->Username = 'pruebasoftwarerc@gmail.com';
-    $mail->Password = 'abkgbjoekgsvhtnj'; // Use métodos seguros para almacenar credenciales en producción
-    $mail->SMTPSecure = 'tls';
-    $mail->Port = 587;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btnEnviarCorreo']))
+{
+    $pdfPath = 'inspeccion_puesto_trabajo.pdf';
+    $pdfData = base64_decode($_POST['pdfData']);
+    
+    if($pdfData === false) {
+        echo "Error: PDF no válido";
+        exit;
+    }
 
-    try {
+    file_put_contents($pdfPath, $pdfData);
+
+    header('Content-Type: text/plain');
+    echo "El correo se está enviando en segundo plano...";
+    header('Connection: close');
+    header('Content-Lenght: ' . ob_get_length());
+    ob_end_flush();
+    flush();
+
+    ignore_user_abort(true);
+
+    $correos = ['cristian.mora3808@gmail.com'];
+
+    $mail = new PHPMailer(true);
+    try{
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'pruebasoftwarerc@gmail.com';
+        $mail->Password = 'abkgbjoekgsvhtnj'; // Use métodos seguros para almacenar credenciales en producción
+        $mail->SMTPSecure = 'tls';
+        $mail->Port = 587;
+        $mail->SMTPKeepAlive = true;
+    
         $mail->setFrom('tu_correo@gmail.com', 'HSE TF');
-        $mail->addAddress($correo);
         $mail->isHTML(true);
         $mail->Subject = 'INSPECCION PUESTO DE TRABAJO';
         $mail->Body = "Inspeccion Puesto De Trabajo.";
+        
         $mail->addAttachment($pdfPath, 'inspeccion_trabajo.pdf');
-        $mail->send();
-        return 'El mensaje se envió correctamente a ' . $correo;
-    } catch (Exception $e) {
-        return "Hubo un error al enviar el mensaje: {$mail->ErrorInfo}";
-    }
-}
-// Variable para almacenar el resultado del envío de correo
-$resultado = '';
-
-// Verificar si se hizo clic en el botón de enviar correo
-if (isset($_POST['btnEnviarCorreo'])) {
-    // Lista de correos a los cuales se enviará el mensaje
-    // $correos = ['mario.acosta@tfauditores.com', 'cristian.mora3808@gmail.com']; // Agregar los correos deseados
-    $correos = ['mario.acosta@tfauditores.com', 'cristian.mora3808@gmail.com']; // Agregar los correos deseados
-
-    // Generar el PDF
-    $pdfPath = 'inspeccion_trabajo.pdf';
-    $pdfData = base64_decode($_POST['pdfData']);
-    
-    // Verificar que los datos del PDF sean válidos
-    if (strpos($pdfData, '%PDF') === 0) { // Comprueba si comienza con la firma de PDF
-        file_put_contents($pdfPath, $pdfData);
 
         // Enviar el correo a cada destinatario con el PDF adjunto
         foreach ($correos as $correo) {
-            $resultado .= enviarCorreoConPdf($correo, $pdfPath) . '<br>';
-        }
-    } else {
-        $resultado = "Los datos del PDF son inválidos.";
-    }
+            $mail->clearAddresses();
+            $mail->addAddress($correo);
+            echo "Correo enviado con éxito a: $correo <br>";
 
-    // Limpiar el archivo PDF si se ha creado
-    if (file_exists($pdfPath)) {
+            if ($mail->send()){
+                echo "Correo enviado con éxito a; $correo <br>";
+            } else {
+                echo "Error al enviar correo a: $correo <br>";
+            }
+        }
+        $mail->smtpClose();
+    } catch(Exception $e) {
+        echo "Excepción capturada: {$mail->ErrorInfo} <br>";
+    }
+    
+    if(file_exists($pdfPath)){
         unlink($pdfPath);
+        echo "PDF eliminado del servidor";
     }
 }
 ?>

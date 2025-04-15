@@ -298,4 +298,4 @@ function enviarCorreo() {
 $('#frmEnviarCorreo').on('submit', function(e) {
     e.preventDefault();
     enviarCorreo();
-});
+}); 
